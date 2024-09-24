@@ -20,11 +20,19 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-            .csrf(csrf -> csrf.disable())
+            .csrf(csrf -> csrf
+                // Disable CSRF for H2 Console 
+                .ignoringRequestMatchers("/api/h2-console/**")
+                .disable()
+            )
             .cors(cors -> cors.configurationSource(corsConfigurationSource()))
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/", "/auth/user", "/oauth2/**", "/login/**", "/logout").permitAll()
+                .requestMatchers("/", "/auth/user", "/oauth2/**", "/login/**", "/logout", "/api/h2-console/**").permitAll()
                 .anyRequest().authenticated()
+            )
+            .headers(headers -> headers
+                // Allow H2 console in iframes
+                .frameOptions().sameOrigin()
             )
             .oauth2Login(oauth2 -> oauth2
                 .authorizationEndpoint(authorization -> authorization
